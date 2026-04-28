@@ -417,7 +417,7 @@
                     const finalBlob = new Blob([baseRomBlob, resourceBlob],
                         { type: 'application/octet-stream' });
                     const safeName = projectName.replace(/[^A-Za-z0-9]/g, '_').replace(/_+/g, '_');
-                    saveAs(finalBlob, safeName + '.sms');
+                    saveAs(finalBlob, 'application/octet-stream', safeName + '.sms');
                     console.log('[SMS Export] ROM generated successfully.');
                     console.log(`  Objects: ${objectList.length}  Levels: ${smsLevels.length}  Palette: ${palette.length} colours`);
                 })
