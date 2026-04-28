@@ -1,0 +1,15 @@
+PRJNAME := ps_base_rom
+OBJS    := ps_rom.rel
+
+all: $(PRJNAME).sms
+
+%.rel : %.c
+	sdcc -c -mz80 --peep-file lib/peep-rules.txt $<
+
+$(PRJNAME).sms: $(OBJS)
+	sdcc -o $(PRJNAME).ihx -mz80 --no-std-crt0 --data-loc 0xC000 \
+	    lib/crt0_sms.rel $(OBJS) SMSlib.lib lib/PSGlib.rel
+	ihx2sms $(PRJNAME).ihx $(PRJNAME).sms
+
+clean:
+	rm -f *.sms *.ihx *.rel *.asm *.sym *.noi *.map *.lst *.lk
