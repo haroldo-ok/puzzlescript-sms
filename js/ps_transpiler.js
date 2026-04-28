@@ -287,48 +287,52 @@
     // ── Resource filesystem builder ───────────────────────────────────────────
     // Matches what the C ROM expects: single bank 2 block.
     function buildResourceBlock(files) {
-        const ENTRY_SIZE = 20;  // name(14)+page(2)+size(2)+offset(2)
+        const ENTRY_SIZE = 20;
+        const DIR_BANK   = 2;
+        const BANK_SIZE  = 16384;
         const fileNames  = Object.keys(files).sort();
         const n          = fileNames.length;
-        const headerSize = 6;                       // "rsc\0" + u16 count
-        const tableSize  = n * ENTRY_SIZE;
-        let   dataOffset = headerSize + tableSize;  // where file data starts
+        const HEADER     = 6;
+        const TABLE      = n * ENTRY_SIZE;
+        let   curBank    = DIR_BANK;
+        let   curOff     = HEADER + TABLE;   // data starts after header+table in bank 2
 
-        // Flatten to arrays
         const datas = fileNames.map(k => {
             const d = files[k];
             return d instanceof Uint8Array ? d : new Uint8Array(d);
         });
 
-        // Compute total block size
-        let total = dataOffset;
-        for (const d of datas) total += d.length;
+        // Assign (bank, offset_within_bank) to each file
+        const pos = datas.map(d => {
+            if (curOff + d.length > BANK_SIZE) { curBank++; curOff = 0; }
+            const p = { bank: curBank, off: curOff };
+            curOff += d.length;
+            return p;
+        });
 
-        const block = new Uint8Array(total);
-        let p = 0;
+        // Allocate block covering all banks
+        const lastBank  = pos[pos.length - 1].bank;
+        const blockSize = (lastBank - DIR_BANK + 1) * BANK_SIZE;
+        const block     = new Uint8Array(blockSize);
+        let p2 = 0;
 
         // Header
-        block[p++]=0x72; block[p++]=0x73; block[p++]=0x63; block[p++]=0x00; // "rsc\0"
-        block[p++]=n&0xFF; block[p++]=(n>>8)&0xFF;                           // u16 count
+        block[p2++]=0x72; block[p2++]=0x73; block[p2++]=0x63; block[p2++]=0x00;
+        block[p2++]=n&0xFF; block[p2++]=(n>>8)&0xFF;
 
-        // Entry table — we know offsets = dataOffset + running sum
-        let fileOff = dataOffset;
-        for (let i=0; i<n; i++) {
-            const name = fileNames[i];
-            for (let c=0; c<14; c++) block[p++] = c<name.length ? name.charCodeAt(c) : 0;
-            // page = 2
-            block[p++]=2; block[p++]=0;
-            // size
-            const sz = datas[i].length;
-            block[p++]=sz&0xFF; block[p++]=(sz>>8)&0xFF;
-            // offset
-            block[p++]=fileOff&0xFF; block[p++]=(fileOff>>8)&0xFF;
-            fileOff += sz;
+        // Entry table
+        for (let i = 0; i < n; i++) {
+            const nm = fileNames[i], fp = pos[i], sz = datas[i].length;
+            for (let c = 0; c < 14; c++) block[p2++] = c < nm.length ? nm.charCodeAt(c) : 0;
+            block[p2++]=fp.bank&0xFF; block[p2++]=(fp.bank>>8)&0xFF;
+            block[p2++]=sz&0xFF;      block[p2++]=(sz>>8)&0xFF;
+            block[p2++]=fp.off&0xFF;  block[p2++]=(fp.off>>8)&0xFF;
         }
 
         // File data
-        for (const d of datas) { block.set(d, p); p += d.length; }
-
+        for (let i = 0; i < n; i++) {
+            block.set(datas[i], (pos[i].bank - DIR_BANK) * BANK_SIZE + pos[i].off);
+        }
         return block;
     }
 
