@@ -1,0 +1,169 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =  002710 L
+    .__.ABS.                                                    =  000000 G
+    .__.CPU.                                                    =  000000 L
+    .__.H$L.                                                    =  000000 L
+    _ROM_bank_to_be_mapped_on_slot0                             =  00FFFD G
+    _ROM_bank_to_be_mapped_on_slot1                             =  00FFFE G
+    _ROM_bank_to_be_mapped_on_slot2                             =  00FFFF G
+    _SMS_SRAM                                                   =  008000 G
+    _SMS_VDPControlPort                                         =  0000BF 
+    _SMS_VDPturnOffFeature                                         ****** GX
+    _SMS_VDPturnOnFeature                                          ****** GX
+    _SMS_VRAMmemcpy                                                ****** GX
+    _SMS_copySpritestoSAT                                          ****** GX
+    _SMS_crt0_RST08                                                ****** GX
+    _SMS_crt0_RST18                                                ****** GX
+    _SMS_getKeysPressed                                            ****** GX
+    _SMS_getKeysStatus                                             ****** GX
+    _SMS_initSprites                                               ****** GX
+    _SMS_load1bppTiles                                             ****** GX
+    _SMS_loadBGPalette                                             ****** GX
+    _SMS_loadSpritePalette                                         ****** GX
+    _SMS_setBGPaletteColor                                         ****** GX
+    _SMS_setBackdropColor                                          ****** GX
+    _SMS_waitForVBlank                                             ****** GX
+    _SRAM_bank_to_be_mapped_on_slot2                            =  00FFFC G
+  9 ___SMS__SEGA_signature                                         007FF0 GR
+  0 ___str_0                                                       002175 R
+  0 ___str_1                                                       002301 R
+  0 ___str_2                                                       002304 R
+  0 ___str_3                                                       002315 R
+  0 ___str_4                                                       0027B4 R
+  0 ___str_5                                                       0027C5 R
+    __modsint                                                      ****** GX
+    __moduint                                                      ****** GX
+    __mulint                                                       ****** GX
+  7 __xinit__rng_state                                             000000 R
+  0 _apply_rule_group                                              000C9D R
+  0 _apply_rules                                                   000D2D R
+  1 _bak                                                           0006C8 R
+  0 _board_reset_view                                              001FBD R
+  0 _cell_apply                                                    0005A4 R
+  1 _cell_combo                                                    001767 R
+  0 _cell_matches                                                  00042F R
+  0 _cell_skip                                                     000416 R
+  0 _check_win                                                     001182 R
+  1 _chkpt                                                         0009C8 R
+  1 _combo_count                                                   001766 R
+  0 _combo_get                                                     001C49 R
+  1 _combo_key                                                     00160A R
+  0 _compose                                                       001A73 R
+  1 _compose_buf                                                   001829 R
+  0 _draw_board                                                    001F72 R
+  0 _draw_cell                                                     001DBA R
+  0 _draw_text                                                     00200A R
+  0 _draw_text_centered                                            00205C R
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+  0 _far_resolve                                                   0003A9 R
+  1 _frame_count                                                   0018A9 R
+  0 _frame_wait                                                    00217D R
+  1 _g_again_interval                                              000004 R
+  1 _g_allMask                                                     00000A R
+  1 _g_author                                                      0000A8 R
+  1 _g_drawOrder                                                   000046 R
+  1 _g_far_late                                                    00007F R
+  1 _g_far_levels                                                  000079 R
+  1 _g_far_msgs                                                    000085 R
+  1 _g_far_rules                                                   00007C R
+  1 _g_far_tiles                                                   000076 R
+  1 _g_far_win                                                     000082 R
+  1 _g_flags                                                       000003 R
+  1 _g_h                                                           0015CB R
+  1 _g_layerMasks                                                  00000E R
+  1 _g_level_idx                                                   0015CD R
+  1 _g_ncells                                                      0015CC R
+  1 _g_nlayers                                                     000001 R
+  1 _g_nlevels                                                     000002 R
+  1 _g_nobj                                                        000000 R
+  1 _g_objLayer                                                    000026 R
+  1 _g_palette                                                     000066 R
+  1 _g_playerMask                                                  000006 R
+  1 _g_textcol                                                     000005 R
+  1 _g_title                                                       000088 R
+  1 _g_w                                                           0015CA R
+  1 _lev                                                           0000C8 R
+  0 _level_fetch                                                   0019A8 R
+  0 _load_header                                                   002449 R
+  0 _main                                                          00269A GR
+  0 _map_bank                                                      000000 R
+  1 _mov                                                           0003C8 R
+  1 _msg_ptr                                                       001608 R
+  1 _off_x                                                         001827 R
+  1 _off_y                                                         001828 R
+  0 _player_bitset_record                                          001402 R
+  0 _poll_input                                                    002190 R
+  1 _poll_input_held_prev_65536_270                                0018AA R
+  1 _poll_input_hold2_65536_270                                    0018AD R
+  1 _poll_input_rep_timer_65536_270                                0018AC R
+  0 _post_turn                                                     00232C R
+  1 _pre_player                                                    0015D0 R
+  0 _ps_font                                                       000009 GR
+  0 _rd16                                                          00030B R
+  0 _rd32                                                          000317 R
+  0 _rd8                                                           000309 R
+  0 _reposition                                                    000E49 R
+  0 _resolve_movements                                             001012 R
+  0 _rng4                                                          0003BA R
+  0 _rng_mod                                                       0003E6 R
+  2 _rng_state                                                     000000 R
+  0 _row_apply_at                                                  0009D9 R
+  0 _row_matches_at                                                00096E R
+  1 _rule_changed                                                  001607 R
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 3.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+  1 _rule_d                                                        0015EA R
+  1 _rule_dx                                                       0015E8 R
+  1 _rule_dy                                                       0015E9 R
+  1 _rule_hasRepl                                                  0015ED R
+  1 _rule_matched                                                  001606 R
+  1 _rule_pos                                                      001600 R
+  1 _rule_rowCount                                                 0015EC R
+  1 _rule_rowLen                                                   0015FA R
+  1 _rule_rows                                                     0015EE R
+  0 _rule_try_apply                                                000B90 R
+  0 _scan_row                                                      000A3F R
+  0 _screen_clear                                                  001F96 R
+  0 _show_message                                                  002080 R
+  0 _str_len                                                       00204C R
+  0 _title_screen                                                  0022CD R
+  0 _turn                                                          00147E R
+  1 _turn_cmd                                                      0015CE R
+  0 _turn_dirmask_tab_65536_182                                    00188D R
+  1 _turn_msg                                                      0015CF R
+  1 _undo_buf                                                      000CC8 R
+  1 _undo_count                                                    0015C8 R
+  1 _undo_head                                                     0015C9 R
+  0 _undo_pop                                                      001919 R
+  0 _undo_push                                                     001892 R
+  0 _wait_button1                                                  002185 R
+  0 _win_flash                                                     00229A R
+
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 4.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE                                      size   27CD   flags    0
+   1 _DATA                                      size   18AE   flags    0
+   2 _INITIALIZED                               size      2   flags    0
+   3 _DABS                                      size      0   flags    8
+   4 _HOME                                      size      0   flags    0
+   5 _GSINIT                                    size      0   flags    0
+   6 _GSFINAL                                   size      0   flags    0
+   7 _INITIALIZER                               size      2   flags    0
+   8 _CABS                                      size      0   flags    8
+   9 _CABS0                                     size     10   flags    8
+
