@@ -1750,7 +1750,8 @@ CellPattern.prototype.generateReplaceFunction = function (OBJECT_SIZE, MOVEMENT_
 		return FALSE_FUNCTION;
 	}
 
-	const array_len = 3*OBJECT_SIZE + 4*MOVEMENT_SIZE + 3;
+	const rigidGroupIndex = rule.rigid ? (state.groupNumber_to_RigidGroupIndex[rule.groupNumber]+1) : 0;
+	const array_len = 3*OBJECT_SIZE + 4*MOVEMENT_SIZE + 5;
 	if (array_len!==_replace_function_key_array.length) {
 		_replace_function_key_array = new Int32Array(array_len);
 	}
@@ -1770,6 +1771,8 @@ CellPattern.prototype.generateReplaceFunction = function (OBJECT_SIZE, MOVEMENT_
 	key_array[3*OBJECT_SIZE + 4*MOVEMENT_SIZE] = OBJECT_SIZE;
 	key_array[3*OBJECT_SIZE + 4*MOVEMENT_SIZE+1] = MOVEMENT_SIZE;
 	key_array[3*OBJECT_SIZE + 4*MOVEMENT_SIZE+2] = rule.rigid;
+	key_array[3*OBJECT_SIZE + 4*MOVEMENT_SIZE+3] = rigidGroupIndex;
+	key_array[3*OBJECT_SIZE + 4*MOVEMENT_SIZE+4] = level.layerCount;
 
 	const key = key_array.toString();
 	if (key in CACHE_CELLPATTERN_REPLACEFUNCTION) {
@@ -1855,7 +1858,7 @@ CellPattern.prototype.generateReplaceFunction = function (OBJECT_SIZE, MOVEMENT_
 		let curRigidMovementAppliedMask;
 		let rigidchange=false;		
 		${IF_LAZY(rule.rigid,()=>`
-			const rigidGroupIndex = ${state.groupNumber_to_RigidGroupIndex[rule.groupNumber]+1};
+			const rigidGroupIndex = ${rigidGroupIndex};
 			const rigidMask = new BitVec(${STRIDE_MOV});
 			${FOR(0,level.layerCount,layer=>`
 				${ISHIFTOR("rigidMask", "rigidGroupIndex", layer * 5)}
@@ -2648,19 +2651,19 @@ function processInput(dir, dontDoWin, dontModify) {
 	if (dir >= 0) {
 		switch (dir) {
 			case 0: // up
-				dir = parseInt('00001', 2);
+				dir = 0b00001;
 				break;
 			case 1: // left
-				dir = parseInt('00100', 2);
+				dir = 0b00100;
 				break;
 			case 2: // down
-				dir = parseInt('00010', 2);
+				dir = 0b00010;
 				break;
 			case 3: // right
-				dir = parseInt('01000', 2);
+				dir = 0b01000;
 				break;
 			case 4: // action
-				dir = parseInt('10000', 2);
+				dir = 0b10000;
 				break;
 		}
 		playerPositions = startMovement(dir);
@@ -2724,12 +2727,12 @@ function processInput(dir, dontDoWin, dontModify) {
 				ts += bannedLineNumbers.map(ln => `<a onclick="jumpToLine(${ln});" href="javascript:void(0);">${ln}</a>`).join(", ");
 				consolePrint(`Rigid movement application failed in rule-Group starting from ${ts}, and will be disabled in resimulation. Rolling back...`);
 			}
-			level.objects = new Int32Array(startState.objects);
-			level.movements = new Int32Array(startState.movements);
-			level.rigidGroupIndexMask = startState.rigidGroupIndexMask.concat([]);
-			level.rigidMovementAppliedMask = startState.rigidMovementAppliedMask.concat([]);
-			level.commandQueue = startState.commandQueue.concat([]);
-			level.commandQueueSourceRules = startState.commandQueueSourceRules.concat([]);
+			level.objects.set(startState.objects);
+			level.movements.set(startState.movements);
+			level.rigidGroupIndexMask = startState.rigidGroupIndexMask.slice();
+			level.rigidMovementAppliedMask = startState.rigidMovementAppliedMask.slice();
+			level.commandQueue = startState.commandQueue.slice();
+			level.commandQueueSourceRules = startState.commandQueueSourceRules.slice();
 			sfxCreateMask.setZero();
 			sfxDestroyMask.setZero();
 			seedsToPlay_CanMove = [];

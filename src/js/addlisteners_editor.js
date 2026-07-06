@@ -29,6 +29,8 @@ toggleThemeClickLinks.addEventListener("click", toggleThemeClick, false);
 
 let exportClickLink = document.getElementById("exportClickLink");
 exportClickLink.addEventListener("click", exportClick, false);
+let exportSMSClickLink = document.getElementById("exportSMSClickLink");
+exportSMSClickLink.addEventListener("click", exportSMSClick, false);
 
 let exampleDropdown = document.getElementById("exampleDropdown");
 exampleDropdown.addEventListener("change", dropdownChange, false);
