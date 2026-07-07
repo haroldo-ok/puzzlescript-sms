@@ -31,6 +31,8 @@ let exportClickLink = document.getElementById("exportClickLink");
 exportClickLink.addEventListener("click", exportClick, false);
 let exportSMSClickLink = document.getElementById("exportSMSClickLink");
 exportSMSClickLink.addEventListener("click", exportSMSClick, false);
+let playSMSClickLink = document.getElementById("playSMSClickLink");
+playSMSClickLink.addEventListener("click", playSMSClick, false);
 
 let exampleDropdown = document.getElementById("exampleDropdown");
 exampleDropdown.addEventListener("change", dropdownChange, false);

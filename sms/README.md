@@ -1,9 +1,16 @@
 # PuzzleScript → Sega Master System export
 
 This directory adds a **Sega Master System ROM exporter** to PuzzleScript.
-Click **EXPORT SMS** in the editor toolbar (next to EXPORT) and you get a
-`.sms` file that runs on real hardware and in any SMS emulator
-(Emulicious, Meka, RetroArch/Genesis Plus GX, BlastEm...).
+
+* Click **EXPORT SMS** in the editor toolbar (next to EXPORT) and you get a
+  `.sms` file that runs on real hardware and in any SMS emulator
+  (Emulicious, Meka, RetroArch/Genesis Plus GX, BlastEm...).
+* Click **PLAY SMS** to build the same ROM and boot it straight away in an
+  embedded [EmulatorJS](https://emulatorjs.org) player (opens `src/play_sms.html`
+  in a new tab). The ROM is handed over in memory as a Blob URL — nothing is
+  written to disk — but the emulator runtime is fetched from
+  `cdn.emulatorjs.org`, so this needs an internet connection. Offline, use
+  EXPORT SMS and open the file in a native emulator.
 
 There is also a command-line exporter:
 
@@ -100,6 +107,8 @@ sms/
     get_z80js.sh       fetches the MIT Z80 core smsrun.js needs
 src/js/exportsms.js    the exporter (used by the editor and export_cli)
 src/js/sms_base_rom.js base ROM as base64 (auto-generated)
+src/play_sms.html      embedded EmulatorJS player (opened by PLAY SMS)
+index.html             (repo root) redirects to src/editor.html
 ```
 
 ## Rebuilding the base ROM
