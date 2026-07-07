@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PuzzleScript SMS Player</title>
+<style>
+    html, body {
+        margin: 0; padding: 0; height: 100%;
+        background: #111; color: #eee;
+        font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+    #bar {
+        display: flex; align-items: center; gap: 12px;
+        padding: 8px 14px; background: #1c1c1c; border-bottom: 1px solid #333;
+    }
+    #bar h1 { font-size: 15px; margin: 0; font-weight: 600; }
+    #bar .spacer { flex: 1; }
+    #bar a { color: #8cf; text-decoration: none; font-size: 13px; }
+    #bar a:hover { text-decoration: underline; }
+    #wrap {
+        width: 100%; height: calc(100% - 42px);
+        display: flex; align-items: center; justify-content: center;
+    }
+    #box { width: 768px; height: 576px; max-width: 100%; max-height: 100%; }
+    #err { padding: 2em; max-width: 640px; line-height: 1.5; }
+    #err code { background: #222; padding: 1px 5px; border-radius: 3px; }
+    #err a { color: #8cf; }
+</style>
+</head>
+<body>
+<div id="bar">
+    <h1 id="title">PuzzleScript &rarr; Sega Master System</h1>
+    <div class="spacer"></div>
+    <a id="dl" href="#" download="game.sms">Download .sms</a>
+    <a href="#" onclick="location.reload();return false;">Restart</a>
+</div>
+<div id="wrap">
+    <div id="box"><div id="game"></div></div>
+</div>
+
+<script>
+(function () {
+    "use strict";
+
+    // The opener (editor) hands us the ROM as an in-memory Blob URL so nothing
+    // hits the disk. Fall back to a ?rom= URL param for standalone/testing use.
+    var payload = null;
+    try { payload = window.opener && window.opener.__psSMSPlay; } catch (e) { payload = null; }
+
+    var params = new URLSearchParams(location.search);
+    var romUrl = payload ? payload.url : params.get("rom");
+    var title  = (payload && payload.title) || params.get("title") || "PuzzleScript game";
+
+    var titleEl = document.getElementById("title");
+    var dlEl = document.getElementById("dl");
+
+    if (!romUrl) {
+        document.getElementById("wrap").innerHTML =
+            '<div id="err"><h2>No ROM to play</h2>' +
+            '<p>Open this page from the PuzzleScript editor by clicking ' +
+            '<b>PLAY SMS</b>, or pass a ROM URL as ' +
+            '<code>play_sms.html?rom=URL_TO.sms</code>.</p></div>';
+        return;
+    }
+
+    titleEl.textContent = title + "  (Sega Master System)";
+    dlEl.href = romUrl;
+    dlEl.download = (title.replace(/[^A-Za-z0-9 _-]/g, "").trim().replace(/ +/g, "_") || "game") + ".sms";
+
+    // EmulatorJS configuration (loaded from its public CDN).
+    window.EJS_player = "#game";
+    window.EJS_core = "segaMS";              // Sega Master System (SMS Plus GX)
+    window.EJS_gameUrl = romUrl;             // Blob URL of the freshly built ROM
+    window.EJS_gameName = title;
+    window.EJS_color = "#8cf";
+    window.EJS_startOnLoaded = true;
+    window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+
+    var s = document.createElement("script");
+    s.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+    s.onerror = function () {
+        document.getElementById("wrap").innerHTML =
+            '<div id="err"><h2>Could not load the emulator</h2>' +
+            '<p>The embedded player streams EmulatorJS from ' +
+            '<code>cdn.emulatorjs.org</code>, which needs an internet ' +
+            'connection. If you are offline, use <b>EXPORT SMS</b> and open ' +
+            'the <code>.sms</code> file in Emulicious, Meka or RetroArch ' +
+            '(Genesis Plus GX / SMS Plus GX).</p></div>';
+    };
+    document.body.appendChild(s);
+
+    // Free the Blob URL when the player window goes away.
+    window.addEventListener("beforeunload", function () {
+        if (payload) { try { URL.revokeObjectURL(payload.url); } catch (e) {} }
+    });
+})();
+</script>
+</body>
+</html>

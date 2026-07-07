@@ -425,17 +425,23 @@ function exportSMSClick() {
 
         var fname = ((state.metadata.title || 'puzzlescript-game')
                         .replace(/[^A-Za-z0-9 _-]/g, '').trim().replace(/ +/g, '_') || 'game') + '.sms';
+        /* Note: don't use PuzzleScript's global saveAs() here — its signature
+           is saveAs(text, type, filename), not the FileSaver saveAs(blob,name),
+           so passing (blob, fname) drops the filename and the browser saves a
+           default *.txt. Trigger the download explicitly instead. */
         var blob = new Blob([rom], { type: 'application/octet-stream' });
-        if (typeof saveAs === 'function') {
-            saveAs(blob, fname);
-        } else {
-            var a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = fname;
-            document.body.appendChild(a);
-            a.click();
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = fname;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
             document.body.removeChild(a);
-        }
+            URL.revokeObjectURL(a.href);
+        }, 0);
+        window.__lastSMSRom = rom;
+        window.__lastSMSName = fname;
         consolePrint('SMS ROM exported: ' + fname + ' (' + rom.length + ' bytes, ' +
             (rom.length / 16384) + ' banks). Test it in Emulicious, Meka or RetroArch (Genesis Plus GX).');
     } catch (e) {
@@ -448,7 +454,50 @@ function exportSMSClick() {
     }
 }
 
+/* Build the ROM (no download) and open it in the embedded EmulatorJS page.
+   The ROM is handed to the player window through a Blob URL kept on the
+   opener, so nothing touches disk and it works offline for the base ROM
+   (only EmulatorJS's own data is fetched from its CDN). */
+function playSMSClick() {
+    try {
+        compile(['restart']);
+    } catch (e) { /* compile logs its own errors */ }
+
+    try {
+        if (typeof PS_SMS_BASE_ROM_B64 === 'undefined' || PS_SMS_BASE_ROM_B64.indexOf('PLACEHOLDER') === 0)
+            throw new SMSExportError('Base ROM missing: run sms/tools/embed_base_rom.py (see sms/README.md).');
+
+        var warnings = [];
+        var rom = buildSMSRomFromState(state, b64ToBytes(PS_SMS_BASE_ROM_B64), warnings);
+        for (var i = 0; i < warnings.length; i++)
+            consolePrint('SMS export warning: ' + warnings[i]);
+
+        var title = (state.metadata.title || 'PuzzleScript game');
+        var blob = new Blob([rom], { type: 'application/octet-stream' });
+        var url = URL.createObjectURL(blob);
+
+        /* stash for the player window to read via window.opener */
+        global.__psSMSPlay = { url: url, title: title };
+
+        var win = window.open('play_sms.html', 'psSMSplayer');
+        if (!win) {
+            URL.revokeObjectURL(url);
+            consolePrint('<span class="errorText">SMS play failed: popup blocked. Allow popups for this site, or use EXPORT SMS.</span>');
+            return;
+        }
+        consolePrint('Launching "' + title + '" in the embedded Sega Master System emulator...');
+    } catch (e) {
+        if (e instanceof SMSExportError)
+            consolePrint('<span class="errorText">SMS play failed: ' + e.message + '</span>');
+        else {
+            consolePrint('<span class="errorText">SMS play failed: ' + (e && e.message) + '</span>');
+            throw e;
+        }
+    }
+}
+
 global.exportSMSClick = exportSMSClick;
+global.playSMSClick = playSMSClick;
 global.buildSMSRomFromState = buildSMSRomFromState;
 global.buildSMSData = buildSMSData;
 
