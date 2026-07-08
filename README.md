@@ -43,11 +43,13 @@ This fork adds two buttons to the editor toolbar:
 * **EXPORT SMS** — builds a Sega Master System ROM and downloads it as a
   `.sms` file. Run it in any SMS emulator (Emulicious, Meka, RetroArch with
   Genesis Plus GX / SMS Plus GX) or on real hardware.
-* **PLAY SMS** — builds the same ROM and launches it immediately in an
-  **embedded emulator** ([EmulatorJS](https://emulatorjs.org)) in a new tab,
-  with no download. The ROM is passed in memory; only the emulator runtime is
-  streamed from EmulatorJS's CDN, so this button needs an internet connection.
-  (Offline? Use **EXPORT SMS** instead.)
+* **PLAY SMS** — builds the same ROM and runs it right away in an
+  **embedded emulator** ([EmulatorJS](https://emulatorjs.org)) that opens as a
+  modal *on the same page* — no popup window and no download. Because the ROM
+  is handed to the emulator in-page (as a same-origin Blob URL), this works
+  inside sandboxed iframes such as **itch.io** embeds. Only the emulator
+  runtime is streamed from EmulatorJS's CDN, so this button needs an internet
+  connection. (Offline? Use **EXPORT SMS** instead.)
 
 Each PuzzleScript object (a 5x5 sprite) is scaled up to a 16x16-pixel tile, so
 a level of up to 16x12 cells fills the 256x192 screen. The ROM contains a

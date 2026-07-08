@@ -43,14 +43,13 @@
 (function () {
     "use strict";
 
-    // The opener (editor) hands us the ROM as an in-memory Blob URL so nothing
-    // hits the disk. Fall back to a ?rom= URL param for standalone/testing use.
-    var payload = null;
-    try { payload = window.opener && window.opener.__psSMSPlay; } catch (e) { payload = null; }
-
+    // Standalone player: load a ROM passed as ?rom=URL (&title=NAME).
+    // The editor's PLAY SMS button no longer uses this page — it runs the
+    // emulator in an in-page modal so it works inside sandboxed iframes
+    // (e.g. itch.io). This page remains handy for direct links to a .sms.
     var params = new URLSearchParams(location.search);
-    var romUrl = payload ? payload.url : params.get("rom");
-    var title  = (payload && payload.title) || params.get("title") || "PuzzleScript game";
+    var romUrl = params.get("rom");
+    var title  = params.get("title") || "PuzzleScript game";
 
     var titleEl = document.getElementById("title");
     var dlEl = document.getElementById("dl");
@@ -92,7 +91,7 @@
 
     // Free the Blob URL when the player window goes away.
     window.addEventListener("beforeunload", function () {
-        if (payload) { try { URL.revokeObjectURL(payload.url); } catch (e) {} }
+        /* nothing to revoke: ?rom= URLs are owned by the caller */
     });
 })();
 </script>
