@@ -6,11 +6,18 @@ This directory adds a **Sega Master System ROM exporter** to PuzzleScript.
   `.sms` file that runs on real hardware and in any SMS emulator
   (Emulicious, Meka, RetroArch/Genesis Plus GX, BlastEm...).
 * Click **PLAY SMS** to build the same ROM and boot it straight away in an
-  embedded [EmulatorJS](https://emulatorjs.org) player (opens `src/play_sms.html`
-  in a new tab). The ROM is handed over in memory as a Blob URL — nothing is
-  written to disk — but the emulator runtime is fetched from
-  `cdn.emulatorjs.org`, so this needs an internet connection. Offline, use
-  EXPORT SMS and open the file in a native emulator.
+  embedded [EmulatorJS](https://emulatorjs.org) player. The emulator opens as
+  a **modal on the same page** (no popup window): the ROM is handed to it
+  in-memory as a same-origin Blob URL, so it also works inside sandboxed
+  iframes such as **itch.io** embeds. The emulator runtime itself is fetched
+  from `cdn.emulatorjs.org`, so this needs an internet connection. Offline,
+  use EXPORT SMS and open the file in a native emulator.
+
+  (An earlier version opened a separate `play_sms.html` window and passed the
+  ROM via `window.opener`; that failed on itch.io because the game runs in a
+  cross-origin iframe the popup can't read back into. `src/play_sms.html`
+  still exists as a standalone `?rom=URL` player but is no longer used by the
+  editor.)
 
 There is also a command-line exporter:
 
@@ -107,7 +114,7 @@ sms/
     get_z80js.sh       fetches the MIT Z80 core smsrun.js needs
 src/js/exportsms.js    the exporter (used by the editor and export_cli)
 src/js/sms_base_rom.js base ROM as base64 (auto-generated)
-src/play_sms.html      embedded EmulatorJS player (opened by PLAY SMS)
+src/play_sms.html      standalone ?rom= player (EXPORT/PLAY don't need it)
 index.html             (repo root) redirects to src/editor.html
 ```
 

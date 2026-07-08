@@ -454,10 +454,82 @@ function exportSMSClick() {
     }
 }
 
-/* Build the ROM (no download) and open it in the embedded EmulatorJS page.
-   The ROM is handed to the player window through a Blob URL kept on the
-   opener, so nothing touches disk and it works offline for the base ROM
-   (only EmulatorJS's own data is fetched from its CDN). */
+/* Build the ROM (no download) and run it in an embedded EmulatorJS modal
+   *on the same page*. A popup window was used before, but on sandboxed hosts
+   like itch.io the game runs in a cross-origin iframe where the popup cannot
+   reach the opener's Blob URL, so EmulatorJS reported a network error. Keeping
+   the emulator in the same document (as Tiny RPG Studio does) avoids that: the
+   Blob URL is created and consumed in one origin/context. */
+
+var _emuBlobUrl = null;
+
+function ensureEmulatorModal() {
+    var modal = document.getElementById('sms-emulator-modal');
+    if (modal) return modal;
+
+    modal = document.createElement('div');
+    modal.id = 'sms-emulator-modal';
+    modal.style.cssText =
+        'display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;' +
+        'background:rgba(0,0,0,0.85);z-index:99999;align-items:center;' +
+        'justify-content:center;flex-direction:column;';
+    modal.innerHTML =
+        '<div style="background:#1a1a1a;border:2px solid #4ac04a;border-radius:8px;' +
+        'padding:14px 18px;max-width:96vw;max-height:96vh;display:flex;' +
+        'flex-direction:column;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.8);">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:16px;">' +
+            '<span id="sms-emulator-title" style="color:#4ac04a;font-family:monospace;font-size:13px;letter-spacing:1px;">&#x25B6; SMS EMULATOR</span>' +
+            '<div style="display:flex;gap:8px;">' +
+              '<button id="sms-emulator-reload" style="background:#1a4080;border:1px solid #3a70d0;color:#fff;padding:5px 10px;cursor:pointer;font-family:inherit;font-size:11px;">&#x21BB; Reload</button>' +
+              '<button id="sms-emulator-close" style="background:#802020;border:1px solid #c04040;color:#fff;padding:5px 10px;cursor:pointer;font-family:inherit;font-size:11px;">&#x2716; Close</button>' +
+            '</div>' +
+          '</div>' +
+          '<div id="sms-emulator-host" style="width:640px;height:480px;max-width:88vw;max-height:78vh;background:#000;">' +
+            '<div id="sms-emulator-target"></div>' +
+          '</div>' +
+          '<div style="color:#888;font-family:monospace;font-size:10px;">Arrow keys move &middot; Z = action/OK &middot; X = undo &middot; Powered by EmulatorJS</div>' +
+        '</div>';
+    document.body.appendChild(modal);
+
+    document.getElementById('sms-emulator-close').addEventListener('click', closeEmulatorModal);
+    document.getElementById('sms-emulator-reload').addEventListener('click', function () {
+        if (typeof playSMSClick === 'function') playSMSClick();
+    });
+    modal.addEventListener('click', function (e) { if (e.target === modal) closeEmulatorModal(); });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+            e.stopPropagation();
+            e.preventDefault();
+            closeEmulatorModal();
+        }
+    }, true);
+    return modal;
+}
+
+function teardownEmulator() {
+    try {
+        if (window.EJS_emulator && typeof window.EJS_emulator.callEvent === 'function')
+            window.EJS_emulator.callEvent('exit');
+    } catch (e) { /* ignore */ }
+    var target = document.getElementById('sms-emulator-target');
+    if (target) target.innerHTML = '';
+    if (_emuBlobUrl) { try { URL.revokeObjectURL(_emuBlobUrl); } catch (e) {} _emuBlobUrl = null; }
+    delete window.EJS_emulator;
+    delete window.EJS_player;
+    delete window.EJS_core;
+    delete window.EJS_gameUrl;
+    delete window.EJS_pathtodata;
+    delete window.EJS_startOnLoaded;
+    delete window.EJS_gameName;
+    delete window.EJS_color;
+}
+
+function closeEmulatorModal() {
+    var modal = document.getElementById('sms-emulator-modal');
+    if (modal) modal.style.display = 'none';
+    teardownEmulator();
+}
+
 function playSMSClick() {
     try {
         compile(['restart']);
@@ -473,20 +545,39 @@ function playSMSClick() {
             consolePrint('SMS export warning: ' + warnings[i]);
 
         var title = (state.metadata.title || 'PuzzleScript game');
+
+        /* fresh emulator each launch, so Reload works */
+        ensureEmulatorModal();
+        teardownEmulator();
+
         var blob = new Blob([rom], { type: 'application/octet-stream' });
-        var url = URL.createObjectURL(blob);
+        _emuBlobUrl = URL.createObjectURL(blob);
 
-        /* stash for the player window to read via window.opener */
-        global.__psSMSPlay = { url: url, title: title };
+        var titleEl = document.getElementById('sms-emulator-title');
+        if (titleEl) titleEl.innerHTML = '\u25B6 ' + title.replace(/[<>&]/g, '') + ' (SMS)';
 
-        var win = window.open('play_sms.html', 'psSMSplayer');
-        if (!win) {
-            URL.revokeObjectURL(url);
-            consolePrint('<span class="errorText">SMS play failed: popup blocked. Allow popups for this site, or use EXPORT SMS.</span>');
-            return;
-        }
+        window.EJS_player        = '#sms-emulator-target';
+        window.EJS_core          = 'segaMS';
+        window.EJS_gameUrl       = _emuBlobUrl;
+        window.EJS_gameName      = title;
+        window.EJS_color         = '#4ac04a';
+        window.EJS_startOnLoaded = true;
+        window.EJS_pathtodata    = 'https://cdn.emulatorjs.org/stable/data/';
+
+        document.getElementById('sms-emulator-modal').style.display = 'flex';
+
+        var loader = document.createElement('script');
+        loader.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+        loader.async = true;
+        loader.onerror = function () {
+            closeEmulatorModal();
+            consolePrint('<span class="errorText">SMS play failed: could not load EmulatorJS from cdn.emulatorjs.org (needs an internet connection). Use EXPORT SMS and open the .sms in a native emulator instead.</span>');
+        };
+        document.body.appendChild(loader);
+
         consolePrint('Launching "' + title + '" in the embedded Sega Master System emulator...');
     } catch (e) {
+        closeEmulatorModal();
         if (e instanceof SMSExportError)
             consolePrint('<span class="errorText">SMS play failed: ' + e.message + '</span>');
         else {
@@ -498,6 +589,7 @@ function playSMSClick() {
 
 global.exportSMSClick = exportSMSClick;
 global.playSMSClick = playSMSClick;
+global.closeEmulatorModal = closeEmulatorModal;
 global.buildSMSRomFromState = buildSMSRomFromState;
 global.buildSMSData = buildSMSData;
 
